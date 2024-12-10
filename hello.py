@@ -78,7 +78,9 @@ def main():
 
 def show_data_summary(df):
     st.title("📊 Interactive Data Analysis Dashboard")
-
+    st.markdown("""
+    This Streamlit app is designed to analyze rainfall data. The data includes various factors such as temperature, humidity, wind speed, and weather conditions. The app uses k-means clustering and linear regression techniques to gain insights into the relationships between these factors and rainfall.
+    """)
     # Animated introduction
     with st.spinner("Loading data overview..."):
         time.sleep(1)
@@ -117,6 +119,15 @@ def show_data_summary(df):
 
     with summary_tab2:
         # Animated missing data analysis
+        st.markdown("""
+        The data is preprocessed by performing the following steps:
+        1. Removing missing values (`dropna`).
+        2. Imputing numerical columns with the mean value.
+        3. Imputing categorical columns with the most frequent value.
+        4. Scaling numerical features for better model performance.
+
+        Below is the overview of missing values before and after data cleaning.
+        """)
         with st.spinner("Analyzing missing data..."):
             time.sleep(0.5)
 
@@ -227,6 +238,21 @@ def show_clustering_plot(df):
             template="plotly_dark",
         )
         st.plotly_chart(fig, use_container_width=True)
+        st.markdown("""
+        The scatter plot shows the relationship between temperature and rainfall where the x-axis represents the temperature, and the y-axis for rainfall, colored by cluster. The clusters are formed using K-means clustering algorithm, which groups similar data points into clusters.
+        """)
+        st.markdown("""
+        ### Cluster Observations:
+        - Cluster 0 (Blue): Mostly consists of data points where:
+        - Rainfall is relatively higher (14.8 to 21.8 units).
+        - Temperature is on the lower side (around 13.9 to 17.1).
+        - Cluster 1 (Pink): Includes data points with:
+        - Minimal rainfall (equal to 2.1).
+        - Higher temperatures (19.4 to 23.4).
+        - Cluster 2 (Yellow): Features data points where:
+        - Rainfall ranges from 3.9 to 11.6 units.
+        - Temperature ranges between 16.1 and 19.7.
+        """)
 
     with cluster_tab2:
         # Interactive elbow method
@@ -246,6 +272,11 @@ def show_clustering_plot(df):
                 labels={"x": "Number of Clusters", "y": "WCSS"},
             )
             st.plotly_chart(fig, use_container_width=True)
+            st.markdown("""
+The **Elbow Method** helps determine the optimal number of clusters by plotting the **WCSS (Within-Cluster Sum of Squares)** for different values of **k** (number of clusters). We can see that the "elbow" is around **k = 3**, meaning adding more clusters beyond 3 doesn’t significantly reduce WCSS.
+
+Therefore, based on the elbow method, we determined that the optimal number of clusters for this dataset is **3**.
+""")
 
     with cluster_tab3:
         # Cluster statistics
