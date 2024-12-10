@@ -64,7 +64,7 @@ def main():
         "Clustering": show_clustering_plot,
         "Linear Regression": show_linear_regression,
         "Linear Regression: Rainfall vs Temperature": show_rainfall_vs_temperature,
-        "Linear Reggression: Rainfall vs Humidity": show_rainfall_vs_humidity,
+        "Linear Regression: Rainfall vs Humidity": show_rainfall_vs_humidity,
     }
 
     selection = st.sidebar.radio("Go to", list(pages.keys()))
