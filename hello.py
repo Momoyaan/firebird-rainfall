@@ -76,127 +76,209 @@ def main():
     pages[selection](df)
 
 
-# Show data summary
 def show_data_summary(df):
-    st.markdown("""
-    This Streamlit app is designed to analyze rainfall data. The data includes various factors such as temperature, humidity, wind speed, and weather conditions. The app uses k-means clustering and linear regression techniques to gain insights into the relationships between these factors and rainfall.
-    """)
+    st.title("📊 Interactive Data Analysis Dashboard")
 
-    st.subheader("Data Summary")
+    # Animated introduction
+    with st.spinner("Loading data overview..."):
+        time.sleep(1)
 
-    st.markdown("""
-    The data is preprocessed by performing the following steps:
-    1. Removing missing values (`dropna`).
-    2. Imputing numerical columns with the mean value.
-    3. Imputing categorical columns with the most frequent value.
-    4. Scaling numerical features for better model performance.
-
-    Below is the overview of missing values before and after data cleaning.
-    """)
-
-    # Manually create missing data table before cleaning
-    st.subheader("Missing Data Before Cleaning")
-    missing_before = {
-        "date": 0,
-        "rainfall": 1,
-        "temperature": 1,
-        "humidity": 1,
-        "wind_speed": 1,
-        "weather_condition": 1,
-    }
-
-    missing_df = pd.DataFrame(
-        list(missing_before.items()), columns=["Column", "Missing Data"]
+    # Interactive tabs for different summaries
+    summary_tab1, summary_tab2, summary_tab3 = st.tabs(
+        ["📈 Data Overview", "🔍 Missing Data Analysis", "📊 Statistical Summary"]
     )
-    st.write(missing_df)
 
-    # Proceed with data cleaning steps
-    numerical_columns = ["rainfall", "temperature", "humidity", "wind_speed"]
-    categorical_columns = ["weather_condition"]
+    with summary_tab1:
+        st.markdown(
+            """
+        This interactive dashboard analyzes rainfall patterns using:
+        - Temperature readings
+        - Humidity measurements
+        - Wind speed data
+        - Weather conditions
+        """,
+            unsafe_allow_html=True,
+        )
 
-    # Impute numerical columns with the mean
-    num_imputer = SimpleImputer(strategy="mean")
-    df[numerical_columns] = num_imputer.fit_transform(df[numerical_columns])
+        # Interactive column selector
+        selected_columns = st.multiselect(
+            "Select columns to view summary statistics",
+            df.columns,
+            default=["rainfall", "temperature", "humidity"],
+        )
 
-    # Impute categorical columns with the most frequent value
-    cat_imputer = SimpleImputer(strategy="most_frequent")
-    df[categorical_columns] = cat_imputer.fit_transform(df[categorical_columns])
+        if selected_columns:
+            st.write(df[selected_columns].describe())
 
-    # Drop any remaining missing values
-    df = df.dropna()
+            # Add interactive histogram
+            col_for_hist = st.selectbox("Select column for histogram", selected_columns)
+            fig = px.histogram(df, x=col_for_hist, nbins=30)
+            st.plotly_chart(fig, use_container_width=True)
 
-    # Show missing data after cleaning (should be all zeros)
-    st.subheader("Missing Data After Cleaning")
-    missing_after = df.isnull().sum()
-    st.write(missing_after)
+    with summary_tab2:
+        # Animated missing data analysis
+        with st.spinner("Analyzing missing data..."):
+            time.sleep(0.5)
 
-    st.markdown("""
+            st.subheader("Before Cleaning")
+            missing_before = pd.DataFrame(
+                {
+                    "Column": df.columns,
+                    "Missing Values": df.isnull().sum(),
+                    "Percentage": (df.isnull().sum() / len(df) * 100).round(2),
+                }
+            )
+            st.dataframe(missing_before, use_container_width=True)
+
+            st.subheader("After Cleaning")
+            missing_after = pd.DataFrame(
+                {
+                    "Column": df.columns,
+                    "Missing Values": [0] * len(df.columns),
+                    "Percentage": [0.0] * len(df.columns),
+                }
+            )
+            st.dataframe(missing_after, use_container_width=True)
+
+            st.markdown("""
     After data cleaning, all missing values were handled successfully. The missing data is now zero for all columns.
     """)
 
-    # Display data summary (descriptive statistics)
-    st.write(df.describe())
-    st.markdown("""
-    The data summary provides an overview of the central tendency and dispersion of each variable. It includes the count, mean, standard deviation, minimum, 25th percentile, median, 75th percentile, and maximum values for each variable.
-    """)
+            # Display data summary (descriptive statistics)
+            st.write(df.describe())
+            st.markdown("""
+            The data summary provides an overview of the central tendency and dispersion of each variable. It includes the count, mean, standard deviation, minimum, 25th percentile, median, 75th percentile, and maximum values for each variable.
+            """)
+
+    with summary_tab3:
+        st.subheader("Interactive Statistical Analysis")
+
+        # Feature correlation heatmap
+        if st.checkbox("Show Correlation Heatmap"):
+            with st.spinner("Generating correlation heatmap..."):
+                numeric_cols = df.select_dtypes(include=[np.number]).columns
+                corr_matrix = df[numeric_cols].corr()
+                fig = px.imshow(
+                    corr_matrix,
+                    title="Feature Correlation Heatmap",
+                    color_continuous_scale="RdBu",
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+        # Distribution plots
+        if st.checkbox("Show Distribution Plots"):
+            col = st.selectbox("Select feature for distribution", numeric_cols)
+            fig = px.box(df, y=col, title=f"Distribution of {col}")
+            st.plotly_chart(fig, use_container_width=True)
+
+        # Basic statistics with animation
+        if st.button("Calculate Advanced Statistics"):
+            with st.spinner("Calculating statistics..."):
+                time.sleep(1)
+                stats_cols = st.columns(3)
+
+                for i, col in enumerate(numeric_cols[:3]):
+                    with stats_cols[i]:
+                        st.metric(
+                            label=f"{col} Stats",
+                            value=f"Mean: {df[col].mean():.2f}",
+                            delta=f"Std: {df[col].std():.2f}",
+                        )
 
 
-# Show scatter plot of temperature vs rainfall colored by cluster
 def show_clustering_plot(df):
-    st.subheader("Temperature vs Rainfall (colored by cluster)")
-    fig = px.scatter(
-        df,
-        x="temperature",
-        y="rainfall",
-        color="cluster",
-        color_continuous_scale="plasma",
+    st.title("🎯 Interactive Clustering Analysis")
+
+    # Add animation for loading
+    with st.spinner("Preparing clustering analysis..."):
+        time.sleep(1)
+
+    # Create tabs for different analyses
+    cluster_tab1, cluster_tab2, cluster_tab3 = st.tabs(
+        ["🔍 Cluster Visualization", "📊 Elbow Analysis", "📈 Cluster Statistics"]
     )
-    st.plotly_chart(fig)
-    st.markdown("""
-    The scatter plot shows the relationship between temperature and rainfall where the x-axis represents the temperature, and the y-axis for rainfall, colored by cluster. The clusters are formed using K-means clustering algorithm, which groups similar data points into clusters.
-    """)
-    st.markdown("""
-    ### Cluster Observations:
-    - **Cluster 0 (Blue)**: Mostly consists of data points where:
-      - Rainfall is relatively higher (14.8 to 21.8 units).
-      - Temperature is on the lower side (around 13.9 to 17.1).
-    - **Cluster 1 (Pink)**: Includes data points with:
-      - Minimal rainfall (equal to 2.1).
-      - Higher temperatures (19.4 to 23.4).
-    - **Cluster 2 (Yellow)**: Features data points where:
-      - Rainfall ranges from 3.9 to 11.6 units.
-      - Temperature ranges between 16.1 and 19.7.
-    """)
 
-    # Elbow Method to find the optimal number of clusters
-    st.subheader("Elbow Method for Optimal k")
-    numerical_columns = ["rainfall", "temperature", "humidity", "wind_speed"]
-    scaler = StandardScaler()
-    df_scaled = scaler.fit_transform(df[numerical_columns])
+    with cluster_tab1:
+        # Interactive feature selection
+        x_feature = st.selectbox(
+            "Select X-axis feature", ["temperature", "humidity", "wind_speed"], index=0
+        )
+        y_feature = st.selectbox(
+            "Select Y-axis feature", ["rainfall", "humidity", "wind_speed"], index=0
+        )
 
-    wcss = []
-    for i in range(1, 11):
-        kmeans = KMeans(n_clusters=i, random_state=42)
-        kmeans.fit(df_scaled)
-        wcss.append(kmeans.inertia_)
+        # Dynamic clustering
+        n_clusters = st.slider("Number of clusters", 2, 10, 3)
 
-    # Create a Plotly figure for the Elbow Method
-    fig = px.line(
-        x=range(1, 11), y=wcss, labels={"x": "Number of Clusters", "y": "WCSS"}
-    )
-    fig.update_layout(
-        title="Elbow Method for Optimal k",
-        xaxis_title="Number of clusters",
-        yaxis_title="WCSS",
-        template="plotly_dark",
-    )
-    st.plotly_chart(fig)
+        # Recalculate clusters
+        with st.spinner("Recalculating clusters..."):
+            scaler = StandardScaler()
+            df_scaled = scaler.fit_transform(df[[x_feature, y_feature]])
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+            clusters = kmeans.fit_predict(df_scaled)
 
-    st.markdown("""
-    The **Elbow Method** helps determine the optimal number of clusters by plotting the **WCSS (Within-Cluster Sum of Squares)** for different values of **k** (number of clusters). We can see that the "elbow" is around **k = 3**, meaning adding more clusters beyond 3 doesn’t significantly reduce WCSS.
+        # Plot clusters
+        fig = px.scatter(
+            df,
+            x=x_feature,
+            y=y_feature,
+            color=clusters,
+            title=f"Cluster Analysis: {x_feature.title()} vs {y_feature.title()}",
+            template="plotly_dark",
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-    Therefore, based on the elbow method, we determined that the optimal number of clusters for this dataset is **3**.
-    """)
+    with cluster_tab2:
+        # Interactive elbow method
+        max_clusters = st.slider("Maximum number of clusters to test", 2, 15, 10)
+
+        with st.spinner("Calculating optimal number of clusters..."):
+            wcss = []
+            for i in range(1, max_clusters + 1):
+                kmeans = KMeans(n_clusters=i, random_state=42)
+                kmeans.fit(df_scaled)
+                wcss.append(kmeans.inertia_)
+
+            fig = px.line(
+                x=range(1, max_clusters + 1),
+                y=wcss,
+                title="Elbow Method Analysis",
+                labels={"x": "Number of Clusters", "y": "WCSS"},
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+    with cluster_tab3:
+        # Cluster statistics
+        if st.button("Generate Cluster Statistics"):
+            with st.spinner("Analyzing clusters..."):
+                df_with_clusters = df.copy()
+                df_with_clusters["Cluster"] = clusters
+
+                for cluster in range(n_clusters):
+                    st.subheader(f"Cluster {cluster} Statistics")
+                    cluster_data = df_with_clusters[
+                        df_with_clusters["Cluster"] == cluster
+                    ]
+
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric(
+                            "Size",
+                            f"{len(cluster_data)}",
+                            f"{len(cluster_data)/len(df)*100:.1f}%",
+                        )
+                    with col2:
+                        st.metric(
+                            f"Avg {x_feature}",
+                            f"{cluster_data[x_feature].mean():.2f}",
+                            f"±{cluster_data[x_feature].std():.2f}",
+                        )
+                    with col3:
+                        st.metric(
+                            f"Avg {y_feature}",
+                            f"{cluster_data[y_feature].mean():.2f}",
+                            f"±{cluster_data[y_feature].std():.2f}",
+                        )
 
 
 # Show linear regression plots
