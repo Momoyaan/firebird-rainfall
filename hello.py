@@ -164,10 +164,12 @@ def show_data_summary(df):
     with summary_tab3:
         st.subheader("Interactive Statistical Analysis")
 
+        # Get numeric columns first
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+
         # Feature correlation heatmap
         if st.checkbox("Show Correlation Heatmap"):
             with st.spinner("Generating correlation heatmap..."):
-                numeric_cols = df.select_dtypes(include=[np.number]).columns
                 corr_matrix = df[numeric_cols].corr()
                 fig = px.imshow(
                     corr_matrix,
@@ -186,15 +188,71 @@ def show_data_summary(df):
         if st.button("Calculate Advanced Statistics"):
             with st.spinner("Calculating statistics..."):
                 time.sleep(1)
-                stats_cols = st.columns(3)
 
-                for i, col in enumerate(numeric_cols[:3]):
-                    with stats_cols[i]:
-                        st.metric(
-                            label=f"{col} Stats",
-                            value=f"Mean: {df[col].mean():.2f}",
-                            delta=f"Std: {df[col].std():.2f}",
+                # Create metrics for each numeric column
+                for col in numeric_cols:
+                    st.metric(
+                        label=f"{col} Statistics",
+                        value=f"Mean: {df[col].mean():.2f}",
+                        delta=f"Std: {df[col].std():.2f}",
+                    )
+
+                # Additional statistics
+                st.subheader("Detailed Statistics")
+                stats_df = pd.DataFrame(
+                    {
+                        "Metric": ["Mean", "Median", "Std Dev", "Skewness", "Kurtosis"],
+                        **{
+                            col: [
+                                df[col].mean(),
+                                df[col].median(),
+                                df[col].std(),
+                                df[col].skew(),
+                                df[col].kurtosis(),
+                            ]
+                            for col in numeric_cols
+                        },
+                    }
+                )
+
+                st.dataframe(stats_df.round(2), use_container_width=True)
+
+                # Add distribution comparison
+                st.subheader("Distribution Comparison")
+                fig = go.Figure()
+                for col in numeric_cols:
+                    fig.add_trace(
+                        go.Violin(
+                            y=df[col], name=col, box_visible=True, meanline_visible=True
                         )
+                    )
+                fig.update_layout(
+                    title="Distribution Comparison Across Features", showlegend=True
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+        # Add download option for statistics
+        if st.button("Download Statistical Report"):
+            # Create a comprehensive statistical report
+            buffer = io.StringIO()
+
+            # Write basic statistics
+            buffer.write("Basic Statistics\n")
+            buffer.write("================\n\n")
+            df[numeric_cols].describe().to_csv(buffer)
+
+            # Write correlation matrix
+            buffer.write("\n\nCorrelation Matrix\n")
+            buffer.write("=================\n\n")
+            df[numeric_cols].corr().to_csv(buffer)
+
+            # Create download button
+            st.download_button(
+                label="Download Complete Statistics",
+                data=buffer.getvalue(),
+                file_name="statistical_report.csv",
+                mime="text/csv",
+            )
 
 
 def show_clustering_plot(df):
