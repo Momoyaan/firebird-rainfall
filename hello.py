@@ -479,6 +479,13 @@ def show_rainfall_vs_temperature(df):
                     f"{(len(filtered_df[temp_mask])/len(filtered_df))*100:.1f}% of total",
                 )
 
+        st.write("Key Observations:")
+        st.info("""
+        - Heaviest rainfall occurs in lower temperature ranges
+        - Rainfall decreases as temperature increases
+        - Most consistent patterns in mid-range temperatures
+        """)
+
     with tab2:
         st.subheader("Dynamic Analysis")
 
@@ -740,6 +747,14 @@ def show_rainfall_vs_humidity(df):
                     f"{filtered_df[humidity_mask]['rainfall'].max():.2f}mm",
                     f"at {filtered_df[humidity_mask]['humidity'].iloc[filtered_df[humidity_mask]['rainfall'].argmax()]:.1f}% humidity",
                 )
+
+        st.write("Key Observations:")
+        st.info("""
+        - Strong Positive Correlation: "Higher humidity consistently associated with increased rainfall
+        - Threshold Effect: "Minimal rainfall below 60% humidity
+        - Linear Increase: "Generally linear relationship above threshold
+        - Variability: "Greater scatter in rainfall at high humidity levels
+        """)
 
     with tab2:
         st.subheader("Dynamic Pattern Analysis")
