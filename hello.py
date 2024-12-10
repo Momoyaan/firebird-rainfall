@@ -65,6 +65,7 @@ def main():
         "Linear Regression": show_linear_regression,
         "Linear Regression: Rainfall vs Temperature": show_rainfall_vs_temperature,
         "Linear Regression: Rainfall vs Humidity": show_rainfall_vs_humidity,
+        "Overall Insights": show_overall_insights,
     }
 
     selection = st.sidebar.radio("Go to", list(pages.keys()))
@@ -248,7 +249,34 @@ def show_rainfall_vs_temperature(df):
     st.markdown("""
     The rainfall vs temperature plot shows the relationship between rainfall and temperature. The trendline is shown in orange.
     """)
+    st.markdown("""
+    ### Range Analysis
+    - **Temperature Range:** 14°C to 24°C
+    - **Rainfall Range:** 0mm to approximately 20mm
+    
+    ### Pattern Details
+    <details>
+    <summary>Click to see detailed pattern analysis</summary>
+    
+    - **Correlation:** Strong negative correlation visible in the orange trendline
+    - **Rainfall Distribution:**
+        * Heaviest rainfall (15-20mm) clusters around 14-16°C
+        * Moderate rainfall (5-15mm) occurs between 16-19°C
+        * Minimal rainfall (0-5mm) when temperatures exceed 20°C
+    - **Optimal Temperature:** The pattern suggests optimal temperature range for rainfall is 14-18°C
+    </details>
 
+    ### Distribution Characteristics
+    <details>
+    <summary>Click to see distribution analysis</summary>
+    
+    - **Data Scatter:** Points show variation around the trendline
+    - **Variability:**
+        * Higher variability in rainfall at lower temperatures
+        * More consistent (but lower) rainfall at higher temperatures
+    - **Pattern Confidence:** Green dots represent individual weather events, showing clear trend
+    </details>
+    """, unsafe_allow_html=True)
 
 # Show rainfall vs humidity plot
 def show_rainfall_vs_humidity(df):
@@ -262,10 +290,73 @@ def show_rainfall_vs_humidity(df):
     )
     fig.update_traces(marker=dict(color="#f1c40f"))
     st.plotly_chart(fig)
+    correlation = df['rainfall'].corr(df['humidity'])
+    st.write(f"**Correlation Coefficient:** {correlation:.2f}")
     st.markdown("""
     The rainfall vs humidity plot shows the relationship between rainfall and humidity. The trendline is shown in purple.
     """)
+    st.markdown("""
+    ### Range Analysis
+    - **Humidity Range:** 45% to 90%
+    - **Rainfall Range:** 0mm to approximately 20mm
 
+    ### Pattern Details
+    <details>
+    <summary>Click to see detailed pattern analysis</summary>
+    
+    - **Correlation:** Strong positive correlation shown by purple trendline
+    - **Critical Thresholds:**
+        * Humidity threshold around 60% - rainfall rarely occurs below this
+        * Linear increase in rainfall potential as humidity increases
+        * Maximum rainfall events cluster in 80-90% humidity range
+        * Near-zero rainfall consistently observed below 55% humidity
+    </details>
+
+    ### Distribution Characteristics
+    <details>
+    <summary>Click to see distribution analysis</summary>
+    
+    - **Data Pattern:** Yellow dots show clear progression
+    - **Variability:**
+        * More scatter in rainfall amounts at higher humidity levels (75-90%)
+        * Tighter grouping of data points at lower humidity levels
+    - **Outliers:** Some present but generally follows trendline
+    </details>
+
+    ### Practical Applications
+    <details>
+    <summary>Click to see applications</summary>
+    
+    This analysis can be particularly useful for:
+    - Short-term weather forecasting
+    - Understanding seasonal rainfall patterns
+    - Agricultural planning for rainfall-dependent crops
+    - Urban water management systems
+    - Climate change impact studies in the local area
+    </details>
+    """, unsafe_allow_html=True)
+
+
+def show_overall_insights(df):
+    st.subheader("Key Weather Pattern Insights")
+
+    st.markdown("""
+    ### Temperature Impact
+    - Inverse relationship with rainfall
+    - Critical temperature thresholds affect rainfall probability
+    - Higher temperatures generally mean lower rainfall chances
+
+    ### Humidity Impact
+    - Direct relationship with rainfall
+    - Strong predictor of rainfall probability
+    - Clear threshold points for rainfall occurrence
+
+    ### Combined Effects
+    Different combinations of temperature and humidity create distinct weather patterns:
+    - Low temperature + high humidity = Highest rainfall probability
+    - High temperature + low humidity = Lowest rainfall probability
+    - Moderate values = Variable rainfall patterns
+    """)
 
 if __name__ == "__main__":
     main()
